@@ -92,6 +92,9 @@ public class Map {
             add(new Coordinates(1, 0));
             add(new Coordinates(2, 0));
         }});
+        put("bird", new ArrayList<Coordinates>() {{
+            add(new Coordinates(6, 12));
+        }});
     }};
 
     public Tank loadLevelOne(Pane root) {
