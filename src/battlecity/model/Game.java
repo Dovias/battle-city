@@ -6,10 +6,14 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class Game {
     private Pane root = new Pane();
     private boolean isRunning;
     private Tank player = new Tank(350, 700, 30, 30, "player", Color.BLACK);
+    private double t = 0;
 
     public Game() {
     }
@@ -55,6 +59,7 @@ public class Game {
                     player.moveUp();
                     break;
                 case SPACE:
+                    shoot(player);
                     break;
             }
         });
@@ -62,8 +67,56 @@ public class Game {
         return scene;
     }
 
-    private void update() {
+    private void shoot(Tank shooter) {
+        Bullet bullet = new Bullet(shooter.getTranslateX() + 15, shooter.getTranslateY(), shooter.type);
+        root.getChildren().add(bullet);
+    }
 
+    private List<Bullet> bullets() {
+        return root.getChildren()
+                .stream()
+                .filter(node -> node.getClass() == Bullet.class)
+                .map(node -> (Bullet) node)
+                .collect(Collectors.toList());
+    }
+
+    private List<Tank> tanks() {
+        return root.getChildren()
+                .stream()
+                .filter(node -> node.getClass() == Tank.class)
+                .map(node -> (Tank) node)
+                .collect(Collectors.toList());
+    }
+
+    private void update() {
+        t += 0.016;
+
+        bullets().forEach(bullet -> {
+            switch (bullet.type) {
+                case "player":
+                    bullet.moveUp();
+                    tanks().stream().filter(tank -> tank.type.equals("enemy")).forEach(enemy -> {
+                        if (bullet.getBoundsInParent().intersects(enemy.getBoundsInParent())) {
+                            enemy.dead = true;
+                            bullet.dead = true;
+                        }
+                    });
+                    break;
+                case "enemy":
+                    break;
+            }
+        });
+
+        root.getChildren().removeIf(node -> {
+            if (node instanceof Tank) {
+                Tank t = (Tank) node;
+                return t.dead;
+            } else if (node instanceof Bullet) {
+                Bullet b = (Bullet) node;
+                return b.dead;
+            }
+            return false;
+        });
     }
 
     public boolean isRunning() {
