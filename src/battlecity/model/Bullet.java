@@ -9,23 +9,23 @@ public class Bullet extends Circle {
     final private Direction direction;
 
     public Bullet(double centerX, double centerY, String type, Direction direction) {
-        super(centerX, centerY, 3, Color.WHITE);
+        super(centerX, centerY, GameSettings.bulletSize, Color.WHITE);
         this.type = type;
         this.direction = new Direction(direction);
         switch (this.direction.getDirection()) {
             case Direction.UP:
-                setTranslateX(getTranslateX() + 12);
+                setTranslateX(getTranslateX() + GameSettings.tankPivotPoint - GameSettings.bulletPivotPoint);
                 break;
             case Direction.DOWN:
-                setTranslateX(getTranslateX() + 12);
-                setTranslateY(getTranslateY() + 26);
+                setTranslateX(getTranslateX() + GameSettings.tankPivotPoint - GameSettings.bulletPivotPoint);
+                setTranslateY(getTranslateY() + GameSettings.tankSize);
                 break;
             case Direction.LEFT:
-                setTranslateY(getTranslateY() + 12);
+                setTranslateY(getTranslateY() + GameSettings.tankPivotPoint - GameSettings.bulletPivotPoint);
                 break;
             case Direction.RIGHT:
-                setTranslateX(getTranslateX() + 26);
-                setTranslateY(getTranslateY() + 12);
+                setTranslateX(getTranslateX() + GameSettings.tankSize);
+                setTranslateY(getTranslateY() + GameSettings.tankPivotPoint - GameSettings.bulletPivotPoint);
                 break;
         }
     }
@@ -33,16 +33,16 @@ public class Bullet extends Circle {
     public void move() {
         switch (direction.getDirection()) {
             case Direction.UP:
-                setTranslateY(getTranslateY() - 5);
+                setTranslateY(getTranslateY() - GameSettings.bulletSpeed);
                 break;
             case Direction.DOWN:
-                setTranslateY(getTranslateY() + 5);
+                setTranslateY(getTranslateY() + GameSettings.bulletSpeed);
                 break;
             case Direction.LEFT:
-                setTranslateX(getTranslateX() - 5);
+                setTranslateX(getTranslateX() - GameSettings.bulletSpeed);
                 break;
             case Direction.RIGHT:
-                setTranslateX(getTranslateX() + 5);
+                setTranslateX(getTranslateX() + GameSettings.bulletSpeed);
                 break;
         }
     }

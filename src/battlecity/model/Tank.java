@@ -14,7 +14,7 @@ public class Tank extends Rectangle {
     private final Direction direction;
 
     public Tank(double x, double y, String type, Color color) {
-        super(26, 26, color);
+        super(GameSettings.tankSize, GameSettings.tankSize, color);
         this.type = type;
         setTranslateX(x);
         setTranslateY(y);
@@ -30,25 +30,25 @@ public class Tank extends Rectangle {
 
     public void moveLeft() {
         if (!changeDirection(Direction.LEFT)) {
-            setTranslateX(getTranslateX() - 8);
+            setTranslateX(getTranslateX() - GameSettings.moveSize);
         }
     }
 
     public void moveRight() {
         if (!changeDirection(Direction.RIGHT)) {
-            setTranslateX(getTranslateX() + 8);
+            setTranslateX(getTranslateX() + GameSettings.moveSize);
         }
     }
 
     public void moveUp() {
         if (!changeDirection(Direction.UP)) {
-            setTranslateY(getTranslateY() - 8);
+            setTranslateY(getTranslateY() - GameSettings.moveSize);
         }
     }
 
     public void moveDown() {
         if (!changeDirection(Direction.DOWN)) {
-            setTranslateY(getTranslateY() + 8);
+            setTranslateY(getTranslateY() + GameSettings.moveSize);
         }
     }
 
@@ -60,7 +60,8 @@ public class Tank extends Rectangle {
         if (!this.direction.getDirection().equals(direction)) {
             this.direction.setDirection(direction);
             getTransforms().clear();
-            getTransforms().add(new Rotate(this.direction.getAngle(), 13, 13));
+            Rotate rotate = new Rotate(this.direction.getAngle(), GameSettings.tankPivotPoint, GameSettings.tankPivotPoint);
+            getTransforms().add(rotate);
             return true;
         }
         return false;

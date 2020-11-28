@@ -2,6 +2,7 @@ package battlecity.model;
 
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Bounds;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Background;
@@ -17,6 +18,8 @@ public class Game {
     private boolean isRunning;
     private Tank player = new Tank(350, 700,  "player", Color.GOLD);
     private double t = 0;
+    private int level = 1;
+    private Map map = new Map();
 
     public Game() {
     }
@@ -32,6 +35,8 @@ public class Game {
         root.setMaxSize(800, 800);
         root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
         root.getChildren().add(player);
+
+        map.loadLevelOne(root);
 
         AnimationTimer timer = new AnimationTimer() {
             @Override
