@@ -4,6 +4,8 @@ import javafx.animation.AnimationTimer;
 import javafx.geometry.Bounds;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
@@ -13,7 +15,7 @@ import java.util.stream.Collectors;
 public class Game {
     private Pane root = new Pane();
     private boolean isRunning;
-    private Tank player = new Tank(350, 700, 40, 40, "player", Color.BLACK);
+    private Tank player = new Tank(350, 700,  "player", Color.GOLD);
     private double t = 0;
 
     public Game() {
@@ -28,6 +30,7 @@ public class Game {
 
         root.setPrefSize(800, 800);
         root.setMaxSize(800, 800);
+        root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
         root.getChildren().add(player);
 
         AnimationTimer timer = new AnimationTimer() {
@@ -40,7 +43,7 @@ public class Game {
         timer.start();
 
         for (int i = 0; i < 5; i++) {
-            Tank t = new Tank(100 + i * 100, 0, 40, 40, "enemy", Color.RED);
+            Tank t = new Tank(100 + i * 100, 0, "enemy", Color.RED);
             root.getChildren().add(t);
         }
 

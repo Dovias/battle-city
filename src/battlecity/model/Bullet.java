@@ -9,23 +9,23 @@ public class Bullet extends Circle {
     final private Direction direction;
 
     public Bullet(double centerX, double centerY, String type, Direction direction) {
-        super(centerX, centerY, 3, Color.BLACK);
+        super(centerX, centerY, 3, Color.WHITE);
         this.type = type;
         this.direction = new Direction(direction);
         switch (this.direction.getDirection()) {
             case Direction.UP:
-                setTranslateX(getTranslateX() + 19);
+                setTranslateX(getTranslateX() + 12);
                 break;
             case Direction.DOWN:
-                setTranslateX(getTranslateX() + 19);
-                setTranslateY(getTranslateY() + 40);
+                setTranslateX(getTranslateX() + 12);
+                setTranslateY(getTranslateY() + 26);
                 break;
             case Direction.LEFT:
-                setTranslateY(getTranslateY() + 19);
+                setTranslateY(getTranslateY() + 12);
                 break;
             case Direction.RIGHT:
-                setTranslateX(getTranslateX() + 40);
-                setTranslateY(getTranslateY() + 19);
+                setTranslateX(getTranslateX() + 26);
+                setTranslateY(getTranslateY() + 12);
                 break;
         }
     }
