@@ -8,5 +8,7 @@ public final class GameSettings {
     public static final int bulletPivotPoint = 1;
     public static final int bulletSpeed = 6;
     public static final int blockSize = 48;
+    public static final int applicationWidth = 624;
+    public static final int applicationHeight = 624;
 
 }

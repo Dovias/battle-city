@@ -13,11 +13,11 @@ public class Tank extends Rectangle {
     final String type;
     private final Direction direction;
 
-    public Tank(double x, double y, String type, Color color) {
-        super(GameSettings.tankSize, GameSettings.tankSize, color);
+    public Tank(Coordinates coordinates, String type) {
+        super(GameSettings.tankSize, GameSettings.tankSize);
         this.type = type;
-        setTranslateX(x);
-        setTranslateY(y);
+        setTranslateX(coordinates.getX());
+        setTranslateY(coordinates.getY());
 
         direction = new Direction(Direction.UP);
 
@@ -29,27 +29,23 @@ public class Tank extends Rectangle {
     }
 
     public void moveLeft() {
-        if (!changeDirection(Direction.LEFT)) {
-            setTranslateX(getTranslateX() - GameSettings.moveSize);
-        }
+        changeDirection(Direction.LEFT);
+        setTranslateX(getTranslateX() - GameSettings.moveSize);
     }
 
     public void moveRight() {
-        if (!changeDirection(Direction.RIGHT)) {
-            setTranslateX(getTranslateX() + GameSettings.moveSize);
-        }
+        changeDirection(Direction.RIGHT);
+        setTranslateX(getTranslateX() + GameSettings.moveSize);
     }
 
     public void moveUp() {
-        if (!changeDirection(Direction.UP)) {
-            setTranslateY(getTranslateY() - GameSettings.moveSize);
-        }
+        changeDirection(Direction.UP);
+        setTranslateY(getTranslateY() - GameSettings.moveSize);
     }
 
     public void moveDown() {
-        if (!changeDirection(Direction.DOWN)) {
-            setTranslateY(getTranslateY() + GameSettings.moveSize);
-        }
+        changeDirection(Direction.DOWN);
+        setTranslateY(getTranslateY() + GameSettings.moveSize);
     }
 
     public Direction getDirection() {

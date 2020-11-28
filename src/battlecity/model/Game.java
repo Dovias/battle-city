@@ -14,15 +14,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Game {
-    private Pane root = new Pane();
+    private final Pane root = new Pane();
     private boolean isRunning;
-    private Tank player = new Tank(350, 700,  "player", Color.GOLD);
+    private Tank player;
     private double t = 0;
-    private int level = 1;
-    private Map map = new Map();
-
-    public Game() {
-    }
+    private final int level = 1;
+    private final Map map = new Map();
 
     public Game(boolean isRunning) {
         this.isRunning = isRunning;
@@ -31,12 +28,11 @@ public class Game {
     public Scene createContent() {
         isRunning = true;
 
-        root.setPrefSize(800, 800);
-        root.setMaxSize(800, 800);
+        root.setPrefSize(GameSettings.applicationWidth, GameSettings.applicationHeight);
+        root.setMaxSize(GameSettings.applicationWidth, GameSettings.applicationHeight);
         root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
-        root.getChildren().add(player);
 
-        map.loadLevelOne(root);
+        player = map.loadLevelOne(root);
 
         AnimationTimer timer = new AnimationTimer() {
             @Override
@@ -46,11 +42,6 @@ public class Game {
         };
 
         timer.start();
-
-        for (int i = 0; i < 5; i++) {
-            Tank t = new Tank(100 + i * 100, 0, "enemy", Color.RED);
-            root.getChildren().add(t);
-        }
 
         Scene scene = new Scene(root);
 

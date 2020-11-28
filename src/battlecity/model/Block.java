@@ -11,8 +11,8 @@ public class Block extends Rectangle {
     final String type;
     boolean dead = false;
 
-    public Block(int x, int y, String type) {
-        super(x, y, GameSettings.blockSize, GameSettings.blockSize);
+    public Block(Coordinates coordinates, String type) {
+        super(coordinates.getX(), coordinates.getY(), GameSettings.blockSize, GameSettings.blockSize);
         this.type = type;
 
         // sets asset to block
