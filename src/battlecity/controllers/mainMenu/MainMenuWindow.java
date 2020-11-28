@@ -1,24 +1,25 @@
 package battlecity.controllers.mainMenu;
 
-import battlecity.Main;
 import battlecity.model.Game;
 import javafx.event.ActionEvent;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.stage.Stage;
 
 public class MainMenuWindow {
-    public Button startGameBtn;
-
-    private Game game = new Game();
+    private Game game;
 
     public void startGame(ActionEvent actionEvent) {
-        Parent root = game.createContent();
+        Stage stage = (Stage)((Node) actionEvent.getSource()).getScene().getWindow();
 
-        Stage stage = (Stage) startGameBtn.getScene().getWindow();
+        Scene scene = game.createContent();
 
-        stage.setScene(new Scene(root));
+        stage.setScene(scene);
         stage.show();
+    }
+
+    public void setGame(Game game) {
+        this.game = game;
     }
 }
