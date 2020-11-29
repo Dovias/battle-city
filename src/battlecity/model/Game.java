@@ -1,14 +1,21 @@
 package battlecity.model;
 
+import battlecity.controllers.deathWindow.DeathWindow;
+import battlecity.controllers.mainMenu.MainMenuWindow;
 import javafx.animation.AnimationTimer;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Bounds;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -23,6 +30,7 @@ public class Game {
     private final int level = 1;
     private final Map map = new Map();
     private int score = 0;
+    private AnimationTimer timer;
 
     public Game(boolean isRunning) {
         this.isRunning = isRunning;
@@ -37,7 +45,7 @@ public class Game {
 
         player = map.loadLevelOne(root);
 
-        AnimationTimer timer = new AnimationTimer() {
+        timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 update();
@@ -207,6 +215,7 @@ public class Game {
                         if (bullet.getBoundsInParent().intersects(tank.getBoundsInParent())) {
                             if (!tank.invincible && tank.type.equals("player")) {
                                 tank.dead = true;
+                                setRunning(false);
                             }
                             bullet.dead = true;
                         }
@@ -236,6 +245,11 @@ public class Game {
         if (tick == 125) {
             tick = 1;
         }
+
+        if (!isRunning) {
+            timer.stop();
+            playerDead();
+        }
     }
 
     private boolean isNotInBounds(Bounds bounds) {
@@ -248,5 +262,22 @@ public class Game {
 
     public void setRunning(boolean running) {
         isRunning = running;
+    }
+
+    private void playerDead() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("../controllers/deathWindow/DeathWindow.fxml"));
+            Parent r = loader.load();
+
+            DeathWindow deathWindow = loader.getController();
+            deathWindow.setScore(score);
+
+            Stage stage = (Stage) root.getScene().getWindow();
+
+            stage.setScene(new Scene(r));
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

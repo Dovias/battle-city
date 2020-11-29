@@ -1,7 +1,6 @@
 package battlecity;
 
 import battlecity.controllers.mainMenu.MainMenuWindow;
-import battlecity.model.Game;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -11,8 +10,6 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class Main extends Application {
-    private Game game = new Game(false);
-
     @Override
     public void start(Stage stage) throws Exception {
         Parent root = showMainMenu();
@@ -28,11 +25,6 @@ public class Main extends Application {
 
     private Parent showMainMenu() throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("controllers/mainMenu/MainMenuWindow.fxml"));
-        Parent root = loader.load();
-
-        MainMenuWindow mainMenuWindow = loader.getController();
-        mainMenuWindow.setGame(game);
-
-        return root;
+        return loader.load();
     }
 }
