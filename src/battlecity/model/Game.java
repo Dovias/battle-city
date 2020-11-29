@@ -114,6 +114,11 @@ public class Game {
                             bullet.dead = true;
                         }
                     });
+                    blocks().stream().filter(block -> !block.type.equals("bush")).forEach(block -> {
+                        if (bullet.getBoundsInParent().intersects(block.getBoundsInParent())) {
+                            bullet.dead = true;
+                        }
+                    });
                     break;
                 case "enemy":
                     break;
