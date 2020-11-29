@@ -19,6 +19,7 @@ public class Game {
     private boolean isRunning;
     private Tank player;
     private double t = 0;
+    private int tick = 0;
     private final int level = 1;
     private final Map map = new Map();
 
@@ -48,28 +49,26 @@ public class Game {
 
         // Key inputs
         scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (!player.spawning) {
-                switch (event.getCode()) {
-                    case A:
-                    case LEFT:
-                        player.moveLeft(Collision.canMove(player, tanks(), blocks(), Direction.LEFT));
-                        break;
-                    case S:
-                    case DOWN:
-                        player.moveDown(Collision.canMove(player, tanks(), blocks(), Direction.DOWN));
-                        break;
-                    case D:
-                    case RIGHT:
-                        player.moveRight(Collision.canMove(player, tanks(), blocks(), Direction.RIGHT));
-                        break;
-                    case W:
-                    case UP:
-                        player.moveUp(Collision.canMove(player, tanks(), blocks(), Direction.UP));
-                        break;
-                    case SPACE:
-                        shoot(player);
-                        break;
-                }
+            switch (event.getCode()) {
+                case A:
+                case LEFT:
+                    player.move(Direction.LEFT, tanks(), blocks());
+                    break;
+                case S:
+                case DOWN:
+                    player.move(Direction.DOWN, tanks(), blocks());
+                    break;
+                case D:
+                case RIGHT:
+                    player.move(Direction.RIGHT, tanks(), blocks());
+                    break;
+                case W:
+                case UP:
+                    player.move(Direction.UP, tanks(), blocks());
+                    break;
+                case SPACE:
+                    shoot(player);
+                    break;
             }
         });
 
@@ -77,8 +76,15 @@ public class Game {
     }
 
     private void shoot(Tank shooter) {
-        Bullet bullet = new Bullet(shooter.getTranslateX(), shooter.getTranslateY(), shooter.type, shooter.getDirection());
-        root.getChildren().add(bullet);
+        if (shooter.nextShootTick == -1) {
+            Bullet bullet = new Bullet(shooter.getTranslateX(), shooter.getTranslateY(), shooter.type, shooter.getDirection());
+            root.getChildren().add(bullet);
+            if (shooter.type.equals("player")) {
+                shooter.nextShootTick = tick + GameSettings.playerShootDelay;
+            } else {
+                shooter.nextShootTick = tick + GameSettings.enemyShootDelay;
+            }
+        }
     }
 
     private List<Bullet> bullets() {
@@ -107,6 +113,7 @@ public class Game {
 
     private void update() {
         t += 0.016;
+        tick += 1;
 
         if (t > 4) {
             t = 0;
@@ -124,18 +131,66 @@ public class Game {
             }
         }
 
-        // spawn tanks
         tanks().forEach(tank -> {
-            if (tank.spawning) {
-                tank.spawn(t);
+            if (tick % 6 == 0) {
+                // spawn tanks
+                if (tank.spawning) {
+                    tank.spawn(t);
+                }
+
+                // enemy tanks move or shoot
+                if (tank.type.equals("enemy") && !tank.spawning) {
+                    // tank is stuck
+                    // move to some direction
+                    if (!Collision.canMove(tank, tanks(), blocks(), tank.getDirection().getDirection())) {
+                        boolean moved = false;
+                        String oppositeDir = tank.getDirection().getOppositeDirection();
+                        String initialDir = tank.getDirection().getDirection();
+
+                        int randNum = ThreadLocalRandom.current().nextInt(0, 2);
+                        if (initialDir.equals(Direction.UP) || initialDir.equals(Direction.DOWN)) {
+                            if (randNum == 0 && Collision.canMove(tank, tanks(), blocks(), Direction.LEFT)) {
+                                tank.move(Direction.LEFT, tanks(), blocks());
+                                moved = true;
+                            } else if (Collision.canMove(tank, tanks(), blocks(), Direction.RIGHT)) {
+                                tank.move(Direction.RIGHT, tanks(), blocks());
+                                moved = true;
+                            }
+                        } else {
+                            if (randNum == 0 && Collision.canMove(tank, tanks(), blocks(), Direction.UP)) {
+                                tank.move(Direction.UP, tanks(), blocks());
+                                moved = true;
+                            } else if (Collision.canMove(tank, tanks(), blocks(), Direction.DOWN)) {
+                                tank.move(Direction.DOWN, tanks(), blocks());
+                                moved = true;
+                            }
+                        }
+
+                        if (!moved) {
+                            tank.move(oppositeDir, tanks(), blocks());
+                        }
+                    } else {
+                        int randNum = ThreadLocalRandom.current().nextInt(0, 5);
+                        if (tank.nextShootTick == -1 && randNum == 0) {
+                            shoot(tank);
+                        } else {
+                            tank.move(tank.getDirection().getDirection(), tanks(), blocks());
+                        }
+                    }
+                }
+            }
+
+            // Reset all tanks shooting ability every 30 ticks
+            if (tank.nextShootTick != -1) {
+                tank.canShoot(tick);
             }
         });
 
         // bullet update
         bullets().forEach(bullet -> {
+            bullet.move();
             switch (bullet.type) {
                 case "player":
-                    bullet.move();
                     tanks().stream().filter(tank -> tank.type.equals("enemy")).forEach(enemy -> {
                         if (bullet.getBoundsInParent().intersects(enemy.getBoundsInParent())) {
                             if (!enemy.invincible) {
@@ -144,15 +199,24 @@ public class Game {
                             bullet.dead = true;
                         }
                     });
-                    blocks().stream().filter(block -> !block.type.equals("bush")).forEach(block -> {
-                        if (bullet.getBoundsInParent().intersects(block.getBoundsInParent())) {
+                    break;
+                case "enemy":
+                    tanks().forEach(tank -> {
+                        if (bullet.getBoundsInParent().intersects(tank.getBoundsInParent())) {
+                            if (!tank.invincible && tank.type.equals("player")) {
+                                tank.dead = true;
+                            }
                             bullet.dead = true;
                         }
                     });
                     break;
-                case "enemy":
-                    break;
             }
+
+            blocks().stream().filter(block -> !block.type.equals("bush")).forEach(block -> {
+                if (bullet.getBoundsInParent().intersects(block.getBoundsInParent())) {
+                    bullet.dead = true;
+                }
+            });
         });
 
         // remove dead things from game
@@ -166,6 +230,10 @@ public class Game {
             }
             return false;
         });
+
+        if (tick == 125) {
+            tick = 1;
+        }
     }
 
     private boolean isNotInBounds(Bounds bounds) {

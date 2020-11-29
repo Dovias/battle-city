@@ -10,4 +10,7 @@ public final class GameSettings {
     public static final int blockSize = 48;
     public static final int applicationWidth = 624;
     public static final int applicationHeight = 624;
+    public static final int maxTick = 125;
+    public static final int playerShootDelay = 30;
+    public static final int enemyShootDelay = 60;
 }

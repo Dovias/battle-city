@@ -19,6 +19,10 @@ public class Collision {
     }
 
     public static boolean canMove(Tank tank, List<Tank> tanks, List<Block> blocks, String direction) {
+        if (tank.spawning) {
+            return false;
+        }
+
         double x = tank.getTranslateX() + 1;
         double y = tank.getTranslateY() + 1;
         double w = GameSettings.tankSize - 2;

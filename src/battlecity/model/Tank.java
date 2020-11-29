@@ -1,11 +1,13 @@
 package battlecity.model;
 
+import javafx.fxml.Initializable;
 import javafx.scene.image.Image;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
 
 import java.io.File;
+import java.util.List;
 
 public class Tank extends Rectangle {
     boolean dead = false;
@@ -15,7 +17,7 @@ public class Tank extends Rectangle {
     final String type;
     private final Direction direction;
 
-    double tick = 0;
+    int nextShootTick = -1;
 
     public Tank(Coordinates coordinates, String type) {
         super(GameSettings.tankSize, GameSettings.tankSize);
@@ -30,32 +32,42 @@ public class Tank extends Rectangle {
         setFill(new ImagePattern(img));
     }
 
-    public void moveLeft(boolean canMove) {
-        changeDirection(Direction.LEFT);
-        if (canMove) {
-            setTranslateX(getTranslateX() - GameSettings.moveSize);
+    public boolean move(String direction, List<Tank> tanks, List<Block> blocks) {
+        changeDirection(direction);
+        if (Collision.canMove(this, tanks, blocks, direction)) {
+            switch (direction) {
+                case Direction.LEFT:
+                    moveLeft();
+                    break;
+                case Direction.RIGHT:
+                    moveRight();
+                    break;
+                case Direction.UP:
+                    moveUp();
+                    break;
+                case Direction.DOWN:
+                    moveDown();
+                    break;
+            }
+            return true;
         }
+        return false;
     }
 
-    public void moveRight(boolean canMove) {
-        changeDirection(Direction.RIGHT);
-        if (canMove) {
-            setTranslateX(getTranslateX() + GameSettings.moveSize);
-        }
+    private void moveLeft() {
+        setTranslateX(getTranslateX() - GameSettings.moveSize);
     }
 
-    public void moveUp(boolean canMove) {
-        changeDirection(Direction.UP);
-        if (canMove) {
-            setTranslateY(getTranslateY() - GameSettings.moveSize);
-        }
+    private void moveRight() {
+        setTranslateX(getTranslateX() + GameSettings.moveSize);
     }
 
-    public void moveDown(boolean canMove) {
-        changeDirection(Direction.DOWN);
-        if (canMove) {
-            setTranslateY(getTranslateY() + GameSettings.moveSize);
-        }
+    private void moveUp() {
+        setTranslateY(getTranslateY() - GameSettings.moveSize);
+    }
+
+    private void moveDown() {
+        setTranslateY(getTranslateY() + GameSettings.moveSize);
     }
 
     public Direction getDirection() {
@@ -74,25 +86,41 @@ public class Tank extends Rectangle {
     }
 
     public void spawn(double t) {
-        tick += 1;
+        if (t > 2) {
+            spawning = false;
+            invincible = false;
 
-        if (tick == 6) {
-            tick = 1;
-            if (t > 2) {
-                spawning = false;
-                invincible = false;
+            // sets asset to tank
+            String file = new File("src/battlecity/assets/" + type + "Tank.png").toURI().toString();
+            Image img = new Image(file);
+            setFill(new ImagePattern(img));
+            getTransforms().add(new Rotate(direction.getAngle(), 0, 0));
+        } else {
+            String file = new File("src/battlecity/assets/spawn" + spawnState + ".png").toURI().toString();
+            Image img = new Image(file);
+            setFill(new ImagePattern(img));
+            spawnState = spawnState == 4 ? 1 : (spawnState + 1);
+        }
+    }
 
-                // sets asset to tank
-                String file = new File("src/battlecity/assets/" + type + "Tank.png").toURI().toString();
-                Image img = new Image(file);
-                setFill(new ImagePattern(img));
-                getTransforms().add(new Rotate(direction.getAngle(), 0, 0));
+    public boolean canShoot(int tick) {
+        if (nextShootTick > GameSettings.maxTick) {
+            int shootDelay = type.equals("player") ? GameSettings.playerShootDelay : GameSettings.enemyShootDelay;
+            if (tick > shootDelay + 10) {
+                return false;
             } else {
-                String file = new File("src/battlecity/assets/spawn" + spawnState + ".png").toURI().toString();
-                Image img = new Image(file);
-                setFill(new ImagePattern(img));
-                spawnState = spawnState == 4 ? 1 : (spawnState + 1);
+                if (nextShootTick - GameSettings.maxTick < tick) {
+                    nextShootTick = -1;
+                    return true;
+                }
             }
         }
+
+        if (nextShootTick < tick || nextShootTick == -1) {
+            nextShootTick = -1;
+            return true;
+        }
+
+        return false;
     }
 }
