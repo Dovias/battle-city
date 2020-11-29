@@ -22,6 +22,7 @@ public class Game {
     private int tick = 0;
     private final int level = 1;
     private final Map map = new Map();
+    private int score = 0;
 
     public Game(boolean isRunning) {
         this.isRunning = isRunning;
@@ -195,6 +196,7 @@ public class Game {
                         if (bullet.getBoundsInParent().intersects(enemy.getBoundsInParent())) {
                             if (!enemy.invincible) {
                                 enemy.dead = true;
+                                score += 100;
                             }
                             bullet.dead = true;
                         }
