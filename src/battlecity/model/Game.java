@@ -1,11 +1,9 @@
 package battlecity.model;
 
 import battlecity.controllers.deathWindow.DeathWindow;
-import battlecity.controllers.mainMenu.MainMenuWindow;
+import battlecity.controllers.levelCompleted.LevelCompletedWindow;
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Bounds;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
@@ -16,7 +14,6 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -31,6 +28,8 @@ public class Game {
     private final Map map = new Map();
     private int score = 0;
     private AnimationTimer timer;
+    private int enemiesLeft = 0;
+    private int enemiesSpawned = 1;
 
     public Game(boolean isRunning) {
         this.isRunning = isRunning;
@@ -38,6 +37,7 @@ public class Game {
 
     public Scene createContent() {
         isRunning = true;
+        enemiesLeft = 5;
 
         root.setPrefSize(GameSettings.applicationWidth, GameSettings.applicationHeight);
         root.setMaxSize(GameSettings.applicationWidth, GameSettings.applicationHeight);
@@ -85,7 +85,7 @@ public class Game {
     }
 
     private void shoot(Tank shooter) {
-        if (shooter.nextShootTick == -1) {
+        if (shooter.nextShootTick == -1 && !shooter.spawning) {
             Bullet bullet = new Bullet(shooter.getTranslateX(), shooter.getTranslateY(), shooter.type, shooter.getDirection());
             root.getChildren().add(bullet);
             if (shooter.type.equals("player")) {
@@ -124,7 +124,7 @@ public class Game {
         t += 0.016;
         tick += 1;
 
-        if (t > 4) {
+        if (t > 5 && enemiesSpawned <= 5) {
             t = 0;
 
             // get available spawns
@@ -137,6 +137,7 @@ public class Game {
                 int randomNum = ThreadLocalRandom.current().nextInt(0, availableSpawns.size());
                 Tank enemy = new Tank(availableSpawns.get(randomNum), "enemy");
                 root.getChildren().add(enemy);
+                enemiesSpawned += 1;
             }
         }
 
@@ -204,7 +205,7 @@ public class Game {
                         if (bullet.getBoundsInParent().intersects(enemy.getBoundsInParent())) {
                             if (!enemy.invincible) {
                                 enemy.dead = true;
-                                score += 100;
+                                enemyKilled();
                             }
                             bullet.dead = true;
                         }
@@ -215,7 +216,7 @@ public class Game {
                         if (bullet.getBoundsInParent().intersects(tank.getBoundsInParent())) {
                             if (!tank.invincible && tank.type.equals("player")) {
                                 tank.dead = true;
-                                setRunning(false);
+                                isRunning = false;
                             }
                             bullet.dead = true;
                         }
@@ -237,7 +238,7 @@ public class Game {
                 return t.dead;
             } else if (node instanceof Bullet) {
                 Bullet b = (Bullet) node;
-                return b.dead || isNotInBounds(b.getBoundsInParent());
+                return b.dead || !b.getBoundsInParent().intersects(0, 0, 800, 800);
             }
             return false;
         });
@@ -248,23 +249,40 @@ public class Game {
 
         if (!isRunning) {
             timer.stop();
-            playerDead();
+            playerKilled();
+        }
+
+        if (enemiesLeft == 0) {
+            timer.stop();
+            playerWon();
         }
     }
 
-    private boolean isNotInBounds(Bounds bounds) {
-        return !bounds.intersects(0, 0, 800, 800);
+    private void enemyKilled() {
+        score += 100;
+        enemiesLeft -= 1;
     }
 
-    public boolean isRunning() {
-        return isRunning;
+    private void playerWon() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("../controllers/levelCompleted/LevelCompletedWindow.fxml"));
+            Parent r = loader.load();
+
+            LevelCompletedWindow levelCompletedWindow = loader.getController();
+            levelCompletedWindow.setScore(score);
+            levelCompletedWindow.setLevel(level);
+
+            Stage stage = (Stage) root.getScene().getWindow();
+
+            stage.setScene(new Scene(r));
+            stage.show();
+            r.requestFocus();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void setRunning(boolean running) {
-        isRunning = running;
-    }
-
-    private void playerDead() {
+    private void playerKilled() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("../controllers/deathWindow/DeathWindow.fxml"));
             Parent r = loader.load();
