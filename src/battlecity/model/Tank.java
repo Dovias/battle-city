@@ -1,7 +1,6 @@
 package battlecity.model;
 
 import javafx.scene.image.Image;
-import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
@@ -28,24 +27,33 @@ public class Tank extends Rectangle {
         getTransforms().add(new Rotate(direction.getAngle(), 0, 0));
     }
 
-    public void moveLeft() {
+    public void moveLeft(boolean canMove) {
         changeDirection(Direction.LEFT);
-        setTranslateX(getTranslateX() - GameSettings.moveSize);
+        if (canMove) {
+            setTranslateX(getTranslateX() - GameSettings.moveSize);
+        }
     }
 
-    public void moveRight() {
+    public void moveRight(boolean canMove) {
+        System.out.println(canMove);
         changeDirection(Direction.RIGHT);
-        setTranslateX(getTranslateX() + GameSettings.moveSize);
+        if (canMove) {
+            setTranslateX(getTranslateX() + GameSettings.moveSize);
+        }
     }
 
-    public void moveUp() {
+    public void moveUp(boolean canMove) {
         changeDirection(Direction.UP);
-        setTranslateY(getTranslateY() - GameSettings.moveSize);
+        if (canMove) {
+            setTranslateY(getTranslateY() - GameSettings.moveSize);
+        }
     }
 
-    public void moveDown() {
+    public void moveDown(boolean canMove) {
         changeDirection(Direction.DOWN);
-        setTranslateY(getTranslateY() + GameSettings.moveSize);
+        if (canMove) {
+            setTranslateY(getTranslateY() + GameSettings.moveSize);
+        }
     }
 
     public Direction getDirection() {

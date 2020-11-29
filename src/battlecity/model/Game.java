@@ -2,7 +2,6 @@ package battlecity.model;
 
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Bounds;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Background;
@@ -50,19 +49,19 @@ public class Game {
             switch (event.getCode()) {
                 case A:
                 case LEFT:
-                    player.moveLeft();
+                    player.moveLeft(Collision.canMove(player, tanks(), blocks(), Direction.LEFT));
                     break;
                 case S:
                 case DOWN:
-                    player.moveDown();
+                    player.moveDown(Collision.canMove(player, tanks(), blocks(), Direction.DOWN));
                     break;
                 case D:
                 case RIGHT:
-                    player.moveRight();
+                    player.moveRight(Collision.canMove(player, tanks(), blocks(), Direction.RIGHT));
                     break;
                 case W:
                 case UP:
-                    player.moveUp();
+                    player.moveUp(Collision.canMove(player, tanks(), blocks(), Direction.UP));
                     break;
                 case SPACE:
                     shoot(player);
@@ -91,6 +90,14 @@ public class Game {
                 .stream()
                 .filter(node -> node.getClass() == Tank.class)
                 .map(node -> (Tank) node)
+                .collect(Collectors.toList());
+    }
+
+    private List<Block> blocks() {
+        return root.getChildren()
+                .stream()
+                .filter(node -> node.getClass() == Block.class)
+                .map(node -> (Block) node)
                 .collect(Collectors.toList());
     }
 
