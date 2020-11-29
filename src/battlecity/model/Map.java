@@ -89,8 +89,8 @@ public class Map {
         }});
         put("enemy", new ArrayList<Coordinates>() {{
             add(new Coordinates(0, 0));
-            add(new Coordinates(1, 0));
-            add(new Coordinates(2, 0));
+            add(new Coordinates(6, 0));
+            add(new Coordinates(12, 0));
         }});
         put("bird", new ArrayList<Coordinates>() {{
             add(new Coordinates(6, 12));
@@ -98,20 +98,28 @@ public class Map {
     }};
 
     public Tank loadLevelOne(Pane root) {
+        // spawn player
         Tank player = new Tank(levelOneBlocks.get("player").get(0), "player");
         root.getChildren().add(player);
+
         levelOneBlocks.forEach((String type, ArrayList<Coordinates> coordinates) -> {
             if (!type.equals("player") && !type.equals("enemy")) {
+                // spawn blocks
                 for (Coordinates c : coordinates) {
                     root.getChildren().add(new Block(c, type));
                 }
             } else if (type.equals("enemy")) {
-                for (Coordinates c : coordinates) {
-                    Tank t = new Tank(c, type);
-                    root.getChildren().add(t);
-                }
+                // spawn first enemy
+                Coordinates c = coordinates.get(1);
+                Tank t = new Tank(c, type);
+                root.getChildren().add(t);
             }
         });
+
         return player;
+    }
+
+    public ArrayList<Coordinates> getEnemySpawns() {
+        return levelOneBlocks.get("enemy");
     }
 }

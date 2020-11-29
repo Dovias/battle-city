@@ -9,8 +9,13 @@ import java.io.File;
 
 public class Tank extends Rectangle {
     boolean dead = false;
+    boolean invincible = true;
+    boolean spawning = true;
+    int spawnState = 2;
     final String type;
     private final Direction direction;
+
+    double tick = 0;
 
     public Tank(Coordinates coordinates, String type) {
         super(GameSettings.tankSize, GameSettings.tankSize);
@@ -20,11 +25,9 @@ public class Tank extends Rectangle {
 
         direction = new Direction(Direction.UP);
 
-        // sets asset to tank
-        String file = new File("src/battlecity/assets/" + type + "Tank.png").toURI().toString();
+        String file = new File("src/battlecity/assets/spawn1.png").toURI().toString();
         Image img = new Image(file);
         setFill(new ImagePattern(img));
-        getTransforms().add(new Rotate(direction.getAngle(), 0, 0));
     }
 
     public void moveLeft(boolean canMove) {
@@ -68,5 +71,28 @@ public class Tank extends Rectangle {
             return true;
         }
         return false;
+    }
+
+    public void spawn(double t) {
+        tick += 1;
+
+        if (tick == 6) {
+            tick = 1;
+            if (t > 2) {
+                spawning = false;
+                invincible = false;
+
+                // sets asset to tank
+                String file = new File("src/battlecity/assets/" + type + "Tank.png").toURI().toString();
+                Image img = new Image(file);
+                setFill(new ImagePattern(img));
+                getTransforms().add(new Rotate(direction.getAngle(), 0, 0));
+            } else {
+                String file = new File("src/battlecity/assets/spawn" + spawnState + ".png").toURI().toString();
+                Image img = new Image(file);
+                setFill(new ImagePattern(img));
+                spawnState = spawnState == 4 ? 1 : (spawnState + 1);
+            }
+        }
     }
 }

@@ -9,7 +9,9 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 public class Game {
@@ -46,26 +48,28 @@ public class Game {
 
         // Key inputs
         scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            switch (event.getCode()) {
-                case A:
-                case LEFT:
-                    player.moveLeft(Collision.canMove(player, tanks(), blocks(), Direction.LEFT));
-                    break;
-                case S:
-                case DOWN:
-                    player.moveDown(Collision.canMove(player, tanks(), blocks(), Direction.DOWN));
-                    break;
-                case D:
-                case RIGHT:
-                    player.moveRight(Collision.canMove(player, tanks(), blocks(), Direction.RIGHT));
-                    break;
-                case W:
-                case UP:
-                    player.moveUp(Collision.canMove(player, tanks(), blocks(), Direction.UP));
-                    break;
-                case SPACE:
-                    shoot(player);
-                    break;
+            if (!player.spawning) {
+                switch (event.getCode()) {
+                    case A:
+                    case LEFT:
+                        player.moveLeft(Collision.canMove(player, tanks(), blocks(), Direction.LEFT));
+                        break;
+                    case S:
+                    case DOWN:
+                        player.moveDown(Collision.canMove(player, tanks(), blocks(), Direction.DOWN));
+                        break;
+                    case D:
+                    case RIGHT:
+                        player.moveRight(Collision.canMove(player, tanks(), blocks(), Direction.RIGHT));
+                        break;
+                    case W:
+                    case UP:
+                        player.moveUp(Collision.canMove(player, tanks(), blocks(), Direction.UP));
+                        break;
+                    case SPACE:
+                        shoot(player);
+                        break;
+                }
             }
         });
 
@@ -104,13 +108,39 @@ public class Game {
     private void update() {
         t += 0.016;
 
+        if (t > 4) {
+            t = 0;
+
+            // get available spawns
+            List<Coordinates> availableSpawns = map.getEnemySpawns().stream().filter(
+                    cord -> Collision.isEnemyTankSpawnAvailable(cord, tanks())
+            ).collect(Collectors.toList());
+
+            // select random spawn and spawn enemy if spawn available
+            if (availableSpawns.size() != 0) {
+                int randomNum = ThreadLocalRandom.current().nextInt(0, availableSpawns.size());
+                Tank enemy = new Tank(availableSpawns.get(randomNum), "enemy");
+                root.getChildren().add(enemy);
+            }
+        }
+
+        // spawn tanks
+        tanks().forEach(tank -> {
+            if (tank.spawning) {
+                tank.spawn(t);
+            }
+        });
+
+        // bullet update
         bullets().forEach(bullet -> {
             switch (bullet.type) {
                 case "player":
                     bullet.move();
                     tanks().stream().filter(tank -> tank.type.equals("enemy")).forEach(enemy -> {
                         if (bullet.getBoundsInParent().intersects(enemy.getBoundsInParent())) {
-                            enemy.dead = true;
+                            if (!enemy.invincible) {
+                                enemy.dead = true;
+                            }
                             bullet.dead = true;
                         }
                     });
@@ -125,6 +155,7 @@ public class Game {
             }
         });
 
+        // remove dead things from game
         root.getChildren().removeIf(node -> {
             if (node instanceof Tank) {
                 Tank t = (Tank) node;

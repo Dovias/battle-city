@@ -2,6 +2,7 @@ package battlecity.model;
 
 import javafx.scene.shape.Rectangle;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,6 +47,21 @@ public class Collision {
         blocks = blocks.stream().filter(block -> !block.type.equals("bush")).collect(Collectors.toList());
         for (Block b : blocks) {
             if (b.getBoundsInParent().intersects(x, y, w, h)) {
+                return false;
+            }
+        }
+
+        return !outOfBounds(x, y, w, h);
+    }
+
+    public static boolean isEnemyTankSpawnAvailable(Coordinates cord, List<Tank> tanks) {
+        double x = cord.getX() + 1;
+        double y = cord.getY() + 1;
+        double w = GameSettings.tankSize - 2;
+        double h = GameSettings.tankSize - 2;
+
+        for (Tank t : tanks) {
+            if (t.getBoundsInParent().intersects(x, y, w, h)) {
                 return false;
             }
         }
