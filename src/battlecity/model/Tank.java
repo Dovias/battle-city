@@ -35,7 +35,6 @@ public class Tank extends Rectangle {
     }
 
     public void moveRight(boolean canMove) {
-        System.out.println(canMove);
         changeDirection(Direction.RIGHT);
         if (canMove) {
             setTranslateX(getTranslateX() + GameSettings.moveSize);
