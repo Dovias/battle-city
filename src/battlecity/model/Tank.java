@@ -17,6 +17,11 @@ public class Tank extends Rectangle {
     final String type;
     private final Direction direction;
 
+    boolean movingLeft = false;
+    boolean movingRight = false;
+    boolean movingUp = false;
+    boolean movingDown = false;
+
     int nextShootTick = -1;
 
     public Tank(Coordinates coordinates, String type) {
