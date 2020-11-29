@@ -61,22 +61,44 @@ public class Game {
             switch (event.getCode()) {
                 case A:
                 case LEFT:
-                    player.move(Direction.LEFT, tanks(), blocks());
+                    player.movingLeft = true;
                     break;
                 case S:
                 case DOWN:
-                    player.move(Direction.DOWN, tanks(), blocks());
+                    player.movingDown = true;
                     break;
                 case D:
                 case RIGHT:
-                    player.move(Direction.RIGHT, tanks(), blocks());
+                    player.movingRight = true;
                     break;
                 case W:
                 case UP:
-                    player.move(Direction.UP, tanks(), blocks());
+                    player.movingUp = true;
                     break;
                 case SPACE:
                     shoot(player);
+                    break;
+            }
+        });
+
+        // Key inputs
+        scene.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
+            switch (event.getCode()) {
+                case A:
+                case LEFT:
+                    player.movingLeft = false;
+                    break;
+                case S:
+                case DOWN:
+                    player.movingDown = false;
+                    break;
+                case D:
+                case RIGHT:
+                    player.movingRight = false;
+                    break;
+                case W:
+                case UP:
+                    player.movingUp = false;
                     break;
             }
         });
@@ -124,7 +146,7 @@ public class Game {
         t += 0.016;
         tick += 1;
 
-        if (t > 5 && enemiesSpawned <= 5) {
+        if (t > 5 && enemiesSpawned < 5) {
             t = 0;
 
             // get available spawns
@@ -146,6 +168,22 @@ public class Game {
                 // spawn tanks
                 if (tank.spawning) {
                     tank.spawn(t);
+                }
+
+                // move player tank
+                if (tank.type.equals("player") && !tank.spawning) {
+                    if (tank.movingUp) {
+                        player.move(Direction.UP, tanks(), blocks());
+                    }
+                    if (tank.movingDown) {
+                        player.move(Direction.DOWN, tanks(), blocks());
+                    }
+                    if (tank.movingLeft) {
+                        player.move(Direction.LEFT, tanks(), blocks());
+                    }
+                    if (tank.movingRight) {
+                        player.move(Direction.RIGHT, tanks(), blocks());
+                    }
                 }
 
                 // enemy tanks move or shoot
