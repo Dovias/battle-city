@@ -17,8 +17,8 @@ public class Collision {
         return !rect.getBoundsInParent().intersects(x, y, w, h);
     }
 
-    public static boolean canMove(Tank tank, List<Tank> tanks, List<Block> blocks, String direction) {
-        if (tank.isSpawning()) {
+    public static boolean canMove(Tank tank, List<Tank> tanks, List<Block> blocks) {
+        if (tank.isSpawning() || tank.getMovingDirection() == null) {
             return false;
         }
 
@@ -26,7 +26,7 @@ public class Collision {
         double y = tank.getTranslateY() + 1;
         double w = GameSettings.tankSize - 2;
         double h = GameSettings.tankSize - 2;
-        switch (direction) {
+        switch (tank.getMovingDirection()) {
             case Direction.RIGHT:
                 x += GameSettings.moveSize;
                 break;
@@ -47,7 +47,7 @@ public class Collision {
             }
         }
 
-        blocks = blocks.stream().filter(block -> !block.type.equals("bush")).collect(Collectors.toList());
+        blocks = blocks.stream().filter(block -> !block.isBush()).collect(Collectors.toList());
         for (Block b : blocks) {
             if (b.getBoundsInParent().intersects(x, y, w, h)) {
                 return false;

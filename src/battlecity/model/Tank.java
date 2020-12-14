@@ -38,7 +38,7 @@ public class Tank extends Rectangle {
 
     public void move(List<Tank> tanks, List<Block> blocks) {
         changeDirection();
-        if (Collision.canMove(this, tanks, blocks, direction.getDirection())) {
+        if (Collision.canMove(this, tanks, blocks)) {
             switch (direction.getDirection()) {
                 case Direction.LEFT:
                     moveLeft();

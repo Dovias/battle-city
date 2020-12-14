@@ -15,24 +15,51 @@ public class Enemy extends Tank {
 
         int randNum = ThreadLocalRandom.current().nextInt(0, 2);
         if (initialDir.equals(Direction.UP) || initialDir.equals(Direction.DOWN)) {
-            if (randNum == 0 && Collision.canMove(this, tanks, blocks, Direction.LEFT)) {
+            if (randNum == 0) {
                 setMovingDirection(Direction.LEFT);
-                return;
-            } else if (Collision.canMove(this, tanks, blocks, Direction.RIGHT)) {
+                if (Collision.canMove(this, tanks, blocks)) {
+                    return;
+                } else {
+                    setMovingDirection(Direction.RIGHT);
+                    if (Collision.canMove(this, tanks, blocks)) {
+                        return;
+                    }
+                }
+            } else {
                 setMovingDirection(Direction.RIGHT);
-                return;
+                if (Collision.canMove(this, tanks, blocks)) {
+                    return;
+                } else {
+                    setMovingDirection(Direction.LEFT);
+                    if (Collision.canMove(this, tanks, blocks)) {
+                        return;
+                    }
+                }
             }
         } else {
-            if (randNum == 0 && Collision.canMove(this, tanks, blocks, Direction.UP)) {
+            if (randNum == 0) {
                 setMovingDirection(Direction.UP);
-                return;
-            } else if (Collision.canMove(this, tanks, blocks, Direction.DOWN)) {
+                if (Collision.canMove(this, tanks, blocks)) {
+                    return;
+                } else {
+                    setMovingDirection(Direction.DOWN);
+                    if (Collision.canMove(this, tanks, blocks)) {
+                        return;
+                    }
+                }
+            } else {
                 setMovingDirection(Direction.DOWN);
-                return;
+                if (Collision.canMove(this, tanks, blocks)) {
+                    return;
+                } else {
+                    setMovingDirection(Direction.UP);
+                    if (Collision.canMove(this, tanks, blocks)) {
+                        return;
+                    }
+                }
             }
         }
 
-        System.out.println("setting opposite direction: " + oppositeDir);
         setMovingDirection(oppositeDir);
     }
 }

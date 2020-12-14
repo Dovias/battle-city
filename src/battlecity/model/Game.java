@@ -186,7 +186,7 @@ public class Game {
 
             enemies().forEach(enemy -> { // enemy tanks move or shoot
                 if (!enemy.isSpawning()) {
-                    if (Collision.canMove(enemy, tanks(), blocks(), enemy.getDirection().getDirection())) {
+                    if (Collision.canMove(enemy, tanks(), blocks())) {
                         int randNum = ThreadLocalRandom.current().nextInt(0, 5);
                         if (enemy.getNextShootTick() == -1 && randNum == 0) {
                             enemy.shoot(root, tick);
@@ -204,7 +204,7 @@ public class Game {
         // bullet update
         bullets().forEach(bullet -> {
             bullet.move();
-            switch (bullet.type) {
+            switch (bullet.getType()) {
                 case "player":
                     enemies().forEach(enemy -> {
                         if (bullet.getBoundsInParent().intersects(enemy.getBoundsInParent())) {
@@ -212,7 +212,7 @@ public class Game {
                                 enemy.setDead(true);
                                 enemyKilled();
                             }
-                            bullet.dead = true;
+                            bullet.setDead(true);
                         }
                     });
                     break;
@@ -223,15 +223,15 @@ public class Game {
                                 player.setDead(true);
                                 isRunning = false;
                             }
-                            bullet.dead = true;
+                            bullet.setDead(true);
                         }
                     });
                     break;
             }
 
-            blocks().stream().filter(block -> !block.type.equals("bush")).forEach(block -> {
+            blocks().stream().filter(block -> !block.isBush()).forEach(block -> {
                 if (bullet.getBoundsInParent().intersects(block.getBoundsInParent())) {
-                    bullet.dead = true;
+                    bullet.setDead(true);
                 }
             });
         });
@@ -243,7 +243,7 @@ public class Game {
                 return t.isDead();
             } else if (node instanceof Bullet) {
                 Bullet b = (Bullet) node;
-                return b.dead || !b.getBoundsInParent().intersects(0, 0, 800, 800);
+                return b.isDead() || !b.getBoundsInParent().intersects(0, 0, 800, 800);
             }
             return false;
         });

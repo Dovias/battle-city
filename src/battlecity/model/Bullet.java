@@ -4,9 +4,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
 public class Bullet extends Circle {
-    final String type;
-    boolean dead = false;
-    final private Direction direction;
+    private final String type;
+    private final Direction direction;
+
+    private boolean dead = false;
 
     public Bullet(double centerX, double centerY, String type, Direction direction) {
         super(centerX, centerY, GameSettings.bulletSize, Color.WHITE);
@@ -45,5 +46,17 @@ public class Bullet extends Circle {
                 setTranslateX(getTranslateX() + GameSettings.bulletSpeed);
                 break;
         }
+    }
+
+    public boolean isDead() {
+        return dead;
+    }
+
+    public void setDead(boolean dead) {
+        this.dead = dead;
+    }
+
+    public String getType() {
+        return type;
     }
 }
