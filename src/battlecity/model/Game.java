@@ -21,12 +21,11 @@ import java.util.stream.Collectors;
 public class Game {
     private final Pane root = new Pane();
     private boolean isRunning;
-    private Tank player;
+    private Player player;
     private double t = 0;
     private int tick = 0;
     private final int level = 1;
     private final Map map = new Map();
-    private int score = 0;
     private AnimationTimer timer;
     private int enemiesLeft = 0;
     private int enemiesSpawned = 1;
@@ -59,24 +58,24 @@ public class Game {
         // Key inputs
         scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             switch (event.getCode()) {
-                case A:
-                case LEFT:
-                    player.movingLeft = true;
-                    break;
-                case S:
-                case DOWN:
-                    player.movingDown = true;
+                case W:
+                case UP:
+                    player.setMovingDirection(Direction.UP);
                     break;
                 case D:
                 case RIGHT:
-                    player.movingRight = true;
+                    player.setMovingDirection(Direction.RIGHT);
                     break;
-                case W:
-                case UP:
-                    player.movingUp = true;
+                case S:
+                case DOWN:
+                    player.setMovingDirection(Direction.DOWN);
+                    break;
+                case A:
+                case LEFT:
+                    player.setMovingDirection(Direction.LEFT);
                     break;
                 case SPACE:
-                    shoot(player);
+                    player.shoot(root, tick);
                     break;
             }
         });
@@ -84,38 +83,20 @@ public class Game {
         // Key inputs
         scene.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
             switch (event.getCode()) {
-                case A:
-                case LEFT:
-                    player.movingLeft = false;
-                    break;
-                case S:
-                case DOWN:
-                    player.movingDown = false;
-                    break;
-                case D:
-                case RIGHT:
-                    player.movingRight = false;
-                    break;
                 case W:
                 case UP:
-                    player.movingUp = false;
+                case D:
+                case RIGHT:
+                case S:
+                case DOWN:
+                case A:
+                case LEFT:
+                    player.setMovingDirection(null);
                     break;
             }
         });
 
         return scene;
-    }
-
-    private void shoot(Tank shooter) {
-        if (shooter.nextShootTick == -1 && !shooter.spawning) {
-            Bullet bullet = new Bullet(shooter.getTranslateX(), shooter.getTranslateY(), shooter.type, shooter.getDirection());
-            root.getChildren().add(bullet);
-            if (shooter.type.equals("player")) {
-                shooter.nextShootTick = tick + GameSettings.playerShootDelay;
-            } else {
-                shooter.nextShootTick = tick + GameSettings.enemyShootDelay;
-            }
-        }
     }
 
     private List<Bullet> bullets() {
@@ -129,8 +110,24 @@ public class Game {
     private List<Tank> tanks() {
         return root.getChildren()
                 .stream()
-                .filter(node -> node.getClass() == Tank.class)
+                .filter(node -> node instanceof Tank)
                 .map(node -> (Tank) node)
+                .collect(Collectors.toList());
+    }
+
+    private List<Player> players() {
+        return root.getChildren()
+                .stream()
+                .filter(node -> node.getClass() == Player.class)
+                .map(node -> (Player) node)
+                .collect(Collectors.toList());
+    }
+
+    private List<Enemy> enemies() {
+        return root.getChildren()
+                .stream()
+                .filter(node -> node.getClass() == Enemy.class)
+                .map(node -> (Enemy) node)
                 .collect(Collectors.toList());
     }
 
@@ -157,7 +154,7 @@ public class Game {
             // select random spawn and spawn enemy if spawn available
             if (availableSpawns.size() != 0) {
                 int randomNum = ThreadLocalRandom.current().nextInt(0, availableSpawns.size());
-                Tank enemy = new Tank(availableSpawns.get(randomNum), "enemy");
+                Enemy enemy = new Enemy(availableSpawns.get(randomNum));
                 root.getChildren().add(enemy);
                 enemiesSpawned += 1;
             }
@@ -166,83 +163,53 @@ public class Game {
         tanks().forEach(tank -> {
             if (tick % 6 == 0) {
                 // spawn tanks
-                if (tank.spawning) {
+                if (tank.isSpawning()) {
                     tank.spawn(t);
-                }
-
-                // move player tank
-                if (tank.type.equals("player") && !tank.spawning) {
-                    if (tank.movingUp) {
-                        player.move(Direction.UP, tanks(), blocks());
-                    }
-                    if (tank.movingDown) {
-                        player.move(Direction.DOWN, tanks(), blocks());
-                    }
-                    if (tank.movingLeft) {
-                        player.move(Direction.LEFT, tanks(), blocks());
-                    }
-                    if (tank.movingRight) {
-                        player.move(Direction.RIGHT, tanks(), blocks());
-                    }
-                }
-
-                // enemy tanks move or shoot
-                if (tank.type.equals("enemy") && !tank.spawning) {
-                    // tank is stuck
-                    // move to some direction
-                    if (!Collision.canMove(tank, tanks(), blocks(), tank.getDirection().getDirection())) {
-                        boolean moved = false;
-                        String oppositeDir = tank.getDirection().getOppositeDirection();
-                        String initialDir = tank.getDirection().getDirection();
-
-                        int randNum = ThreadLocalRandom.current().nextInt(0, 2);
-                        if (initialDir.equals(Direction.UP) || initialDir.equals(Direction.DOWN)) {
-                            if (randNum == 0 && Collision.canMove(tank, tanks(), blocks(), Direction.LEFT)) {
-                                tank.move(Direction.LEFT, tanks(), blocks());
-                                moved = true;
-                            } else if (Collision.canMove(tank, tanks(), blocks(), Direction.RIGHT)) {
-                                tank.move(Direction.RIGHT, tanks(), blocks());
-                                moved = true;
-                            }
-                        } else {
-                            if (randNum == 0 && Collision.canMove(tank, tanks(), blocks(), Direction.UP)) {
-                                tank.move(Direction.UP, tanks(), blocks());
-                                moved = true;
-                            } else if (Collision.canMove(tank, tanks(), blocks(), Direction.DOWN)) {
-                                tank.move(Direction.DOWN, tanks(), blocks());
-                                moved = true;
-                            }
-                        }
-
-                        if (!moved) {
-                            tank.move(oppositeDir, tanks(), blocks());
-                        }
-                    } else {
-                        int randNum = ThreadLocalRandom.current().nextInt(0, 5);
-                        if (tank.nextShootTick == -1 && randNum == 0) {
-                            shoot(tank);
-                        } else {
-                            tank.move(tank.getDirection().getDirection(), tanks(), blocks());
-                        }
-                    }
                 }
             }
 
             // Reset all tanks shooting ability every 30 ticks
-            if (tank.nextShootTick != -1) {
+            if (tank.getNextShootTick() != -1) {
                 tank.canShoot(tick);
             }
         });
+
+
+        if (tick % 6 == 0) {
+            players().forEach(player -> { // move player tank
+                if (!player.isSpawning()) {
+                    if (player.getMovingDirection() != null) {
+                        player.move(tanks(), blocks());
+                    }
+                }
+            });
+
+            enemies().forEach(enemy -> { // enemy tanks move or shoot
+                if (!enemy.isSpawning()) {
+                    if (Collision.canMove(enemy, tanks(), blocks(), enemy.getDirection().getDirection())) {
+                        int randNum = ThreadLocalRandom.current().nextInt(0, 5);
+                        if (enemy.getNextShootTick() == -1 && randNum == 0) {
+                            enemy.shoot(root, tick);
+                        } else {
+                            enemy.move(tanks(), blocks());
+                        }
+                    } else {
+                        enemy.shouldChangeDirection(tanks(), blocks());
+                        enemy.move(tanks(), blocks());
+                    }
+                }
+            });
+        }
 
         // bullet update
         bullets().forEach(bullet -> {
             bullet.move();
             switch (bullet.type) {
                 case "player":
-                    tanks().stream().filter(tank -> tank.type.equals("enemy")).forEach(enemy -> {
+                    enemies().forEach(enemy -> {
                         if (bullet.getBoundsInParent().intersects(enemy.getBoundsInParent())) {
-                            if (!enemy.invincible) {
-                                enemy.dead = true;
+                            if (!enemy.isInvincible()) {
+                                enemy.setDead(true);
                                 enemyKilled();
                             }
                             bullet.dead = true;
@@ -250,10 +217,10 @@ public class Game {
                     });
                     break;
                 case "enemy":
-                    tanks().forEach(tank -> {
-                        if (bullet.getBoundsInParent().intersects(tank.getBoundsInParent())) {
-                            if (!tank.invincible && tank.type.equals("player")) {
-                                tank.dead = true;
+                    players().forEach(player -> {
+                        if (bullet.getBoundsInParent().intersects(player.getBoundsInParent())) {
+                            if (!player.isInvincible()) {
+                                player.setDead(true);
                                 isRunning = false;
                             }
                             bullet.dead = true;
@@ -273,7 +240,7 @@ public class Game {
         root.getChildren().removeIf(node -> {
             if (node instanceof Tank) {
                 Tank t = (Tank) node;
-                return t.dead;
+                return t.isDead();
             } else if (node instanceof Bullet) {
                 Bullet b = (Bullet) node;
                 return b.dead || !b.getBoundsInParent().intersects(0, 0, 800, 800);
@@ -297,7 +264,7 @@ public class Game {
     }
 
     private void enemyKilled() {
-        score += 100;
+        player.addScore(100);
         enemiesLeft -= 1;
     }
 
@@ -307,7 +274,7 @@ public class Game {
             Parent r = loader.load();
 
             LevelCompletedWindow levelCompletedWindow = loader.getController();
-            levelCompletedWindow.setScore(score);
+            levelCompletedWindow.setScore(player.getScore());
             levelCompletedWindow.setLevel(level);
 
             Stage stage = (Stage) root.getScene().getWindow();
@@ -326,7 +293,7 @@ public class Game {
             Parent r = loader.load();
 
             DeathWindow deathWindow = loader.getController();
-            deathWindow.setScore(score);
+            deathWindow.setScore(player.getScore());
 
             Stage stage = (Stage) root.getScene().getWindow();
 

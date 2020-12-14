@@ -1,7 +1,7 @@
 package battlecity.model;
 
-import javafx.fxml.Initializable;
 import javafx.scene.image.Image;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
@@ -10,19 +10,18 @@ import java.io.File;
 import java.util.List;
 
 public class Tank extends Rectangle {
-    boolean dead = false;
-    boolean invincible = true;
-    boolean spawning = true;
-    int spawnState = 2;
-    final String type;
-    private final Direction direction;
+    private boolean dead = false;
+    private boolean invincible = true;
+    private boolean spawning = true;
+    private int spawnState = 2;
 
-    boolean movingLeft = false;
-    boolean movingRight = false;
-    boolean movingUp = false;
-    boolean movingDown = false;
+    private final String type;
+    protected final Direction direction;
 
-    int nextShootTick = -1;
+    private String movingDirection = null;
+
+    protected int shotDelay = GameSettings.enemyShootDelay;
+    private int nextShootTick = -1;
 
     public Tank(Coordinates coordinates, String type) {
         super(GameSettings.tankSize, GameSettings.tankSize);
@@ -37,10 +36,10 @@ public class Tank extends Rectangle {
         setFill(new ImagePattern(img));
     }
 
-    public boolean move(String direction, List<Tank> tanks, List<Block> blocks) {
-        changeDirection(direction);
-        if (Collision.canMove(this, tanks, blocks, direction)) {
-            switch (direction) {
+    public void move(List<Tank> tanks, List<Block> blocks) {
+        changeDirection();
+        if (Collision.canMove(this, tanks, blocks, direction.getDirection())) {
+            switch (direction.getDirection()) {
                 case Direction.LEFT:
                     moveLeft();
                     break;
@@ -54,24 +53,22 @@ public class Tank extends Rectangle {
                     moveDown();
                     break;
             }
-            return true;
         }
-        return false;
     }
 
-    private void moveLeft() {
+    protected void moveLeft() {
         setTranslateX(getTranslateX() - GameSettings.moveSize);
     }
 
-    private void moveRight() {
+    protected void moveRight() {
         setTranslateX(getTranslateX() + GameSettings.moveSize);
     }
 
-    private void moveUp() {
+    protected void moveUp() {
         setTranslateY(getTranslateY() - GameSettings.moveSize);
     }
 
-    private void moveDown() {
+    protected void moveDown() {
         setTranslateY(getTranslateY() + GameSettings.moveSize);
     }
 
@@ -79,11 +76,11 @@ public class Tank extends Rectangle {
         return direction;
     }
 
-    private boolean changeDirection(String direction) {
-        if (!this.direction.getDirection().equals(direction)) {
-            this.direction.setDirection(direction);
+    private boolean changeDirection() {
+        if (movingDirection != null && !direction.getDirection().equals(movingDirection)) {
+            direction.setDirection(movingDirection);
             getTransforms().clear();
-            Rotate rotate = new Rotate(this.direction.getAngle(), GameSettings.tankPivotPoint, GameSettings.tankPivotPoint);
+            Rotate rotate = new Rotate(direction.getAngle(), GameSettings.tankPivotPoint, GameSettings.tankPivotPoint);
             getTransforms().add(rotate);
             return true;
         }
@@ -127,5 +124,49 @@ public class Tank extends Rectangle {
         }
 
         return false;
+    }
+
+    public void shoot(Pane root, int tick) {
+        if (nextShootTick == -1 && !spawning) {
+            Bullet bullet = new Bullet(getTranslateX(), getTranslateY(), type, getDirection());
+            root.getChildren().add(bullet);
+            setNextShootTick(tick + shotDelay);
+        }
+    }
+
+    public int getNextShootTick() {
+        return nextShootTick;
+    }
+
+    public void setNextShootTick(int nextShootTick) {
+        this.nextShootTick = nextShootTick;
+    }
+
+    public boolean isDead() {
+        return dead;
+    }
+
+    public void setDead(boolean dead) {
+        this.dead = dead;
+    }
+
+    public boolean isInvincible() {
+        return invincible;
+    }
+
+    public boolean isSpawning() {
+        return spawning;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getMovingDirection() {
+        return movingDirection;
+    }
+
+    public void setMovingDirection(String movingDirection) {
+        this.movingDirection = movingDirection;
     }
 }

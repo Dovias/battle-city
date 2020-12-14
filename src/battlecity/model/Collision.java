@@ -2,7 +2,6 @@ package battlecity.model;
 
 import javafx.scene.shape.Rectangle;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,7 +18,7 @@ public class Collision {
     }
 
     public static boolean canMove(Tank tank, List<Tank> tanks, List<Block> blocks, String direction) {
-        if (tank.spawning) {
+        if (tank.isSpawning()) {
             return false;
         }
 
