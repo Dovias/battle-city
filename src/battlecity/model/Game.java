@@ -23,7 +23,7 @@ public class Game {
     private boolean isRunning;
     private Player player;
     private double t = 0;
-    private int tick = 0;
+    private int tick = GameSettings.minTick;
     private final int level = 1;
     private final Map map = new Map();
     private AnimationTimer timer;
@@ -168,10 +168,8 @@ public class Game {
                 }
             }
 
-            // Reset all tanks shooting ability every 30 ticks
-            if (tank.getNextShootTick() != -1) {
-                tank.canShoot(tick);
-            }
+            // Reset all tanks shooting ability every n ticks
+            tank.canShoot(tick);
         });
 
 
@@ -188,7 +186,7 @@ public class Game {
                 if (!enemy.isSpawning()) {
                     if (Collision.canMove(enemy, tanks(), blocks())) {
                         int randNum = ThreadLocalRandom.current().nextInt(0, 5);
-                        if (enemy.getNextShootTick() == -1 && randNum == 0) {
+                        if (enemy.canShoot(tick) && randNum == 0) {
                             enemy.shoot(root, tick);
                         } else {
                             enemy.move(tanks(), blocks());
@@ -248,8 +246,8 @@ public class Game {
             return false;
         });
 
-        if (tick == 125) {
-            tick = 1;
+        if (tick == GameSettings.maxTick) {
+            tick = GameSettings.minTick;
         }
 
         if (!isRunning) {
