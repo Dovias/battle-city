@@ -5,6 +5,7 @@ public final class Direction {
     public static final String DOWN = "DOWN";
     public static final String LEFT = "LEFT";
     public static final String RIGHT = "RIGHT";
+
     private String direction;
     private String oppositeDirection;
     private int angle;

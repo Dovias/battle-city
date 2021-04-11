@@ -97,9 +97,9 @@ public class Map {
         }});
     }};
 
-    public Tank loadLevelOne(Pane root) {
+    public Player loadLevelOne(Pane root) {
         // spawn player
-        Tank player = new Tank(levelOneBlocks.get("player").get(0), "player");
+        Player player = new Player(levelOneBlocks.get("player").get(0));
         root.getChildren().add(player);
 
         levelOneBlocks.forEach((String type, ArrayList<Coordinates> coordinates) -> {
@@ -111,8 +111,8 @@ public class Map {
             } else if (type.equals("enemy")) {
                 // spawn first enemy
                 Coordinates c = coordinates.get(1);
-                Tank t = new Tank(c, type);
-                root.getChildren().add(t);
+                Enemy e = new Enemy(c);
+                root.getChildren().add(e);
             }
         });
 

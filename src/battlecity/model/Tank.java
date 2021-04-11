@@ -1,7 +1,7 @@
 package battlecity.model;
 
-import javafx.fxml.Initializable;
 import javafx.scene.image.Image;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
@@ -10,37 +10,31 @@ import java.io.File;
 import java.util.List;
 
 public class Tank extends Rectangle {
-    boolean dead = false;
-    boolean invincible = true;
-    boolean spawning = true;
-    int spawnState = 2;
-    final String type;
-    private final Direction direction;
+    private boolean dead = false;
+    private boolean invincible = true;
+    private boolean spawning = true;
+    private int spawnState = 2;
 
-    boolean movingLeft = false;
-    boolean movingRight = false;
-    boolean movingUp = false;
-    boolean movingDown = false;
+    private final String type;
+    protected final Direction direction = new Direction(Direction.UP);
 
-    int nextShootTick = -1;
+    private String movingDirection = null;
+
+    protected int shotDelay = GameSettings.enemyShootDelay;
+    private int nextShootTick = -1;
 
     public Tank(Coordinates coordinates, String type) {
         super(GameSettings.tankSize, GameSettings.tankSize);
+
         this.type = type;
         setTranslateX(coordinates.getX());
         setTranslateY(coordinates.getY());
-
-        direction = new Direction(Direction.UP);
-
-        String file = new File("src/battlecity/assets/spawn1.png").toURI().toString();
-        Image img = new Image(file);
-        setFill(new ImagePattern(img));
     }
 
-    public boolean move(String direction, List<Tank> tanks, List<Block> blocks) {
-        changeDirection(direction);
-        if (Collision.canMove(this, tanks, blocks, direction)) {
-            switch (direction) {
+    public void move(List<Tank> tanks, List<Block> blocks) {
+        changeDirection();
+        if (Collision.canMove(this, tanks, blocks)) {
+            switch (direction.getDirection()) {
                 case Direction.LEFT:
                     moveLeft();
                     break;
@@ -54,24 +48,22 @@ public class Tank extends Rectangle {
                     moveDown();
                     break;
             }
-            return true;
         }
-        return false;
     }
 
-    private void moveLeft() {
+    protected void moveLeft() {
         setTranslateX(getTranslateX() - GameSettings.moveSize);
     }
 
-    private void moveRight() {
+    protected void moveRight() {
         setTranslateX(getTranslateX() + GameSettings.moveSize);
     }
 
-    private void moveUp() {
+    protected void moveUp() {
         setTranslateY(getTranslateY() - GameSettings.moveSize);
     }
 
-    private void moveDown() {
+    protected void moveDown() {
         setTranslateY(getTranslateY() + GameSettings.moveSize);
     }
 
@@ -79,12 +71,10 @@ public class Tank extends Rectangle {
         return direction;
     }
 
-    private boolean changeDirection(String direction) {
-        if (!this.direction.getDirection().equals(direction)) {
-            this.direction.setDirection(direction);
-            getTransforms().clear();
-            Rotate rotate = new Rotate(this.direction.getAngle(), GameSettings.tankPivotPoint, GameSettings.tankPivotPoint);
-            getTransforms().add(rotate);
+    private boolean changeDirection() {
+        if (movingDirection != null && !direction.getDirection().equals(movingDirection)) {
+            direction.setDirection(movingDirection);
+            rotateTankImage();
             return true;
         }
         return false;
@@ -95,37 +85,80 @@ public class Tank extends Rectangle {
             spawning = false;
             invincible = false;
 
-            // sets asset to tank
-            String file = new File("src/battlecity/assets/" + type + "Tank.png").toURI().toString();
-            Image img = new Image(file);
-            setFill(new ImagePattern(img));
-            getTransforms().add(new Rotate(direction.getAngle(), 0, 0));
+            setTankImage("src/battlecity/assets/" + type + "Tank.png");
+            rotateTankImage();
         } else {
-            String file = new File("src/battlecity/assets/spawn" + spawnState + ".png").toURI().toString();
-            Image img = new Image(file);
-            setFill(new ImagePattern(img));
+            setTankImage("src/battlecity/assets/spawn" + spawnState + ".png");
             spawnState = spawnState == 4 ? 1 : (spawnState + 1);
         }
     }
 
     public boolean canShoot(int tick) {
-        if (nextShootTick > GameSettings.maxTick) {
-            int shootDelay = type.equals("player") ? GameSettings.playerShootDelay : GameSettings.enemyShootDelay;
-            if (tick > shootDelay + 10) {
-                return false;
-            } else {
-                if (nextShootTick - GameSettings.maxTick < tick) {
-                    nextShootTick = -1;
-                    return true;
-                }
-            }
+        if (spawning) {
+            return false;
         }
 
-        if (nextShootTick < tick || nextShootTick == -1) {
+        if (nextShootTick == -1) {
+          return true;
+        }
+
+        if (nextShootTick < tick && (nextShootTick > GameSettings.maxTick - shotDelay || tick < GameSettings.maxTick - shotDelay)) {
             nextShootTick = -1;
             return true;
         }
 
         return false;
+    }
+
+    public void shoot(Pane root, int tick) {
+        if (canShoot(tick)) {
+            nextShootTick = calculateNextShootTick(tick, shotDelay);
+
+            Bullet bullet = new Bullet(getTranslateX(), getTranslateY(), type, getDirection());
+            root.getChildren().add(bullet);
+        }
+    }
+
+    private int calculateNextShootTick(int tick, int shotDelay) {
+        if (tick + shotDelay >= GameSettings.maxTick) {
+            return tick + shotDelay - GameSettings.maxTick;
+        }
+        return tick + shotDelay;
+    }
+
+    public boolean isDead() {
+        return dead;
+    }
+
+    public void setDead(boolean dead) {
+        this.dead = dead;
+    }
+
+    public boolean isInvincible() {
+        return invincible;
+    }
+
+    public boolean isSpawning() {
+        return spawning;
+    }
+
+    public String getMovingDirection() {
+        return movingDirection;
+    }
+
+    public void setMovingDirection(String movingDirection) {
+        this.movingDirection = movingDirection;
+    }
+
+    private void setTankImage(String path) {
+        String file = new File(path).toURI().toString();
+        Image img = new Image(file);
+        setFill(new ImagePattern(img));
+    }
+
+    private void rotateTankImage() {
+        getTransforms().clear();
+        Rotate rotate = new Rotate(direction.getAngle(), GameSettings.tankPivotPoint, GameSettings.tankPivotPoint);
+        getTransforms().add(rotate);
     }
 }

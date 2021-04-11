@@ -9,14 +9,6 @@ public class Coordinates {
         this.blockYCoordinate = blockYCoordinate;
     }
 
-    public int getBlockXCoordinate() {
-        return blockXCoordinate;
-    }
-
-    public int getBlockYCoordinate() {
-        return blockYCoordinate;
-    }
-
     public int getX() {
         return blockXCoordinate * GameSettings.blockSize;
     }
